@@ -11,6 +11,6 @@
 
 ### Getting Started
 To run locally:
-1. `git clone https://github.com/kriscvs/websys-final`
+1. `git clone https://github.com/kriscsv/websys-final`
 2. `npm cd client`
 3. `npm start`
