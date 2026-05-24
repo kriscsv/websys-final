@@ -23,7 +23,7 @@ function Navbar() {
           onMouseLeave={e => e.target.style.color="rgba(255,255,255,0.6)"}>
           HOME
         </button>
-        <button onClick={() => navigate("/signin")}
+        <button onClick={() => navigate("/library")}
           style={{ color:"#fff", fontWeight:600, fontSize:"13px", letterSpacing:"0.1em", background:"none", border:"none", borderBottom:"2px solid #fff", paddingBottom:"2px", cursor:"pointer" }}>
           SIGN IN
         </button>
@@ -35,7 +35,7 @@ function Navbar() {
 const COLLEGE_DEPTS = {
   "College of Engineering":["Civil Engineering","Electrical Engineering","Geodetic Engineering","Mechanical Engineering"],
   "College of Science":["Biology","Chemistry","Computer Science","Information Technology", "Meteorology", ""],
-  "College of Education":["Culture and Arts Education","Bachelor of Secondary Education","Bachelor of Physical Education"],
+  "College of Education":["Culture and Arts Education","Bachelor of Secondary Education","Bachelor of Early Education"],
   "College of Business, Economics, and Management":["Business Administration","Accountancy","Entrepreneurship","Office Administration"],
   "College of Arts and Letters":["Communication","English","Filipino","Performing Arts","Visual Arts"],
   "College of Social Sciences and Philosophy":["Political Science","Psychology","Public Administration","Sociology"],
@@ -43,6 +43,9 @@ const COLLEGE_DEPTS = {
   "Institute of Physical Education, Sports, and Recreation":["Agriculture","Agribusiness","Forestry"],
   "College of Law":["Juris Doctor"],
   "Graduate School":["Master of Arts","Master of Science","Doctor of Philosophy"],
+  "BU Guinobatan" : ["Agriculture", "Fisheries", ],
+  "BU Polangui" : ["Nursing", "Information Technology-Animation", "Computer Engineering", ],
+  "BU Tabaco" : ["Nursing"]
 };
 
 const YEARS = ["1st Year","2nd Year","3rd Year","4th Year","5th Year","Graduate"];

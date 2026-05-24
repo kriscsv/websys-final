@@ -301,7 +301,7 @@ function ContentSection() {
       {/*footer*/}
       <footer style={{ padding:`18px ${H_PAD}` }}>
         <p style={{ color:"#ccc", fontSize:"13px", margin:0 }}>
-          This website is a student project and is intended for school purposes only.
+          This website is a student project and is intended for academic purposes only.
         </p>
       </footer>
 
