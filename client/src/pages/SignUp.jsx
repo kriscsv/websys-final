@@ -23,7 +23,7 @@ function Navbar() {
           onMouseLeave={e => e.target.style.color="rgba(255,255,255,0.6)"}>
           HOME
         </button>
-        <button onClick={() => navigate("/library")}
+        <button onClick={() => navigate("/signin")}
           style={{ color:"#fff", fontWeight:600, fontSize:"13px", letterSpacing:"0.1em", background:"none", border:"none", borderBottom:"2px solid #fff", paddingBottom:"2px", cursor:"pointer" }}>
           SIGN IN
         </button>
@@ -34,22 +34,22 @@ function Navbar() {
 
 const COLLEGE_DEPTS = {
   "College of Engineering":["Civil Engineering","Electrical Engineering","Geodetic Engineering","Mechanical Engineering"],
-  "College of Science":["Biology","Chemistry","Computer Science","Information Technology", "Meteorology", ""],
+  "College of Science":["Biology","Chemistry","Computer Science","Information Technology","Meteorology"],
   "College of Education":["Culture and Arts Education","Bachelor of Secondary Education","Bachelor of Early Education"],
   "College of Business, Economics, and Management":["Business Administration","Accountancy","Entrepreneurship","Office Administration"],
   "College of Arts and Letters":["Communication","English","Filipino","Performing Arts","Visual Arts"],
   "College of Social Sciences and Philosophy":["Political Science","Psychology","Public Administration","Sociology"],
   "College of Nursing":["Bachelor of Science in Nursing"],
-  "Institute of Physical Education, Sports, and Recreation":["Agriculture","Agribusiness","Forestry"],
+  "Institute of Physical Education, Sports, and Recreation":["Physical Education"],
   "College of Law":["Juris Doctor"],
   "Graduate School":["Master of Arts","Master of Science","Doctor of Philosophy"],
-  "BU Guinobatan" : ["Agriculture", "Fisheries", ],
-  "BU Polangui" : ["Nursing", "Information Technology-Animation", "Computer Engineering", ],
-  "BU Tabaco" : ["Nursing"]
+  "BU Guinobatan":["Agriculture","Fisheries"],
+  "BU Polangui":["Nursing","Information Technology-Animation","Computer Engineering"],
+  "BU Tabaco":["Nursing"],
 };
 
 const YEARS = ["1st Year","2nd Year","3rd Year","4th Year","5th Year","Graduate"];
-const BLOCS = ["A","B","C","D", "N/A"];
+const BLOCS = ["A","B","C","D","N/A"];
 
 function Field({ label, children }) {
   return (
@@ -83,10 +83,10 @@ export default function SignUp() {
     year:"", bloc:"", password:"", confirm:"",
   });
 
-  const [showPass,    setShowPass]    = useState(false);
+  const [showPass,setShowPass]= useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError]= useState("");
 
   const set = (field) => (e) =>
     setFormData(prev => ({
@@ -100,6 +100,7 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
     if (!formData.fullName || !formData.email || !formData.college ||
         !formData.department || !formData.year || !formData.bloc ||
         !formData.password || !formData.confirm) {
@@ -111,12 +112,37 @@ export default function SignUp() {
     if (formData.password.length < 8) {
       setError("Password must be at least 8 characters."); return;
     }
+
     setLoading(true);
     try {
-      console.log("Register:", formData);
-      navigate("/signin");
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName:   formData.fullName,
+          email:      formData.email,
+          college:    formData.college,
+          department: formData.department,
+          year:       formData.year,
+          bloc:       formData.bloc,
+          password:   formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Registration failed."); return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role",  data.user.role);
+      localStorage.setItem("user",  JSON.stringify(data.user));
+
+      navigate("/library");
+
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      setError("Cannot connect to server. Make sure it is running on port 5000.");
     } finally {
       setLoading(false);
     }
@@ -130,7 +156,6 @@ export default function SignUp() {
       position:"relative", overflow:"hidden",
     }}>
 
-      {/* BG SVG */}
       <img
         src={BgSVG}
         aria-hidden="true"
@@ -186,7 +211,7 @@ export default function SignUp() {
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
               <Field label="Complete Name *">
                 <input
-                  type="text" placeholder="e.g. Elisha Faith Raro Alcazar"
+                  type="text" placeholder="e.g. Elisha Faith R. Alcazar"
                   value={formData.fullName} onChange={set("fullName")}
                   autoComplete="name" style={inputStyle}
                   onFocus={e => Object.assign(e.target.style, focusStyle)}
@@ -195,7 +220,7 @@ export default function SignUp() {
               </Field>
               <Field label="BU Email Address *">
                 <input
-                  type="email" placeholder="e.g. elisha@bicol-u.edu.ph"
+                  type="email" placeholder="e.g. elishafaith@bicol-u.edu.ph"
                   value={formData.email} onChange={set("email")}
                   autoComplete="email" style={inputStyle}
                   onFocus={e => Object.assign(e.target.style, focusStyle)}
@@ -212,7 +237,7 @@ export default function SignUp() {
                   onFocus={e => Object.assign(e.target.style, focusStyle)}
                   onBlur={e  => Object.assign(e.target.style, blurStyle)}
                 >
-                  <option value="" disabled>Select college…</option>
+                  <option value="" disabled>Select College…</option>
                   {Object.keys(COLLEGE_DEPTS).map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
@@ -232,7 +257,7 @@ export default function SignUp() {
                   onBlur={e  => Object.assign(e.target.style, blurStyle)}
                 >
                   <option value="" disabled>
-                    {formData.college ? "Select department…" : "Select a college first…"}
+                    {formData.college ? "Select Department…" : "Select a college first…"}
                   </option>
                   {depts.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
@@ -258,7 +283,7 @@ export default function SignUp() {
                   onFocus={e => Object.assign(e.target.style, focusStyle)}
                   onBlur={e  => Object.assign(e.target.style, blurStyle)}
                 >
-                  <option value="" disabled>Select bloc…</option>
+                  <option value="" disabled>Select Bloc…</option>
                   {BLOCS.map(b => <option key={b} value={b}>Bloc {b}</option>)}
                 </select>
               </Field>

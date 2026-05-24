@@ -92,13 +92,19 @@ function HeroSection() {
           style={{ background:"#e86c1a", color:"#fff", fontWeight:600, fontSize:"13px", letterSpacing:"0.12em", padding:"11px 36px", borderRadius:"8px", border:"none", cursor:"pointer" }}>
           SIGN IN
         </button>
+
+        {/*make new page for this ano lang siguro simple scroll tapos to view all need mag sign up?*/}
+        
+        {/*
         <button
           onClick={() => navigate("/library")}
           onMouseEnter={e => e.currentTarget.style.background="rgba(255,255,255,0.1)"}
           onMouseLeave={e => e.currentTarget.style.background="transparent"}
           style={{ background:"transparent", color:"#fff", fontWeight:600, fontSize:"13px", letterSpacing:"0.12em", padding:"11px 36px", borderRadius:"8px", border:"1px solid rgba(255,255,255,0.35)", cursor:"pointer" }}>
-          BROWSE LIBRARY {/*make new page for this ano lang siguro simple scroll tapos to view all need mag sign up?*/}
+          BROWSE LIBRARY 
         </button>
+        */}
+
       </div>
     </section>
   );
@@ -238,6 +244,7 @@ function ContentSection() {
           </p>
           <button
             onClick={() => navigate("/library?category=journals")}
+            target="_blank"
             onMouseEnter={e => e.currentTarget.style.background="#d4590f"}
             onMouseLeave={e => e.currentTarget.style.background="#e86c1a"}
             style={{ background:"#e86c1a", color:"#fff", fontWeight:600, fontSize:"13px", letterSpacing:"0.12em", padding:"11px 32px", borderRadius:"8px", border:"none", cursor:"pointer" }}>
@@ -245,7 +252,6 @@ function ContentSection() {
           </button>
         </div>
       </div>
-
       {/*img layout*/}
       <div
         ref={r2.ref}
@@ -259,7 +265,6 @@ function ContentSection() {
         }}
       >
         <div style={{ display:"flex", flexDirection:"column", gap:"20px" }}>
-          <span style={{ color:"#bbb", fontSize:"13px" }}>insert something here ig</span>
         </div>
 
         <div style={{ overflow:"hidden" }}>
