@@ -22,11 +22,11 @@ DB_NAME=archival_db
 JWT_SECRET=your_secret_key
 PORT=5000
 ``` 
-**3.Prerequisites:**
+**3. Prerequisites:**
 1. `Node.js`
 2. `XAMPP`
 
-**4.Set up database:**
+**4. Set up database:**
 1. Run XAMPP and start **Apache** and **MySQL**
 2. Import `setup.sql` at http://localhost/phpmyadmin
 
@@ -39,9 +39,3 @@ PORT=5000
 1. `cd server`
 2. `npm install`
 2. `npm start`
-
-### Submitted by:
-Alcazar, Elisha, Faith R
-Bucay, Chloe
-Castro, John Paul R.
-Fortin, Kris Angel G.
