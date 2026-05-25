@@ -10,26 +10,33 @@
 4. **Database:** `MySQL 8.0`
 
 ### Getting Started
-**Clone the repository:**
+**1. Clone the repository:**
 `git clone https://github.com/kriscvs/websys-final`
 
-**Create .env file inside the server folder:**
-[DB_HOST=localhost DB_USER=root DB_PASSWORD= DB_NAME=archival_db PORT=5000 JWT_SECRET='your_secret_key']: # 
-
-**Prerequisites:**
+**2. Create .env file inside the server folder:**
+Create `.env` file inside the `server` folder
+```
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=archival_db
+JWT_SECRET=your_secret_key
+PORT=5000
+``` 
+**3.Prerequisites:**
 1. `Node.js`
 2. `XAMPP`
 
-**Set up database:**
+**4.Set up database:**
 1. Run XAMPP and start **Apache** and **MySQL**
 2. Import `setup.sql` at http://localhost/phpmyadmin
 
-**To run locally (client):**
+**5. To run locally (client):**
 1. `cd client`
 2. `npm install`
 3. `npm start`
 
-**To run locally (server):**
+**6. To run locally (server):**
 1. `cd server`
 2. `npm install`
 2. `npm start`
