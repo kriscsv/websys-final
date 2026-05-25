@@ -13,8 +13,7 @@
 **1. Clone the repository:**
 `git clone https://github.com/kriscvs/websys-final`
 
-**2. Create .env file inside the server folder:**
-Create `.env` file inside the `server` folder
+**2. Create an `.env` file inside the server folder:**
 ```
 DB_HOST=localhost
 DB_USER=root
