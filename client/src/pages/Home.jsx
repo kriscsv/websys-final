@@ -243,12 +243,11 @@ function ContentSection() {
            by year, quarter, and document category.
           </p>
           <button
-            onClick={() => navigate("/library?category=journals")}
-            target="_blank"
-            onMouseEnter={e => e.currentTarget.style.background="#d4590f"}
-            onMouseLeave={e => e.currentTarget.style.background="#e86c1a"}
-            style={{ background:"#e86c1a", color:"#fff", fontWeight:600, fontSize:"13px", letterSpacing:"0.12em", padding:"11px 32px", borderRadius:"8px", border:"none", cursor:"pointer" }}>
-            FAQs
+          onClick={() => navigate("/signin")}
+          onMouseEnter={e => e.currentTarget.style.background="#d4590f"}
+          onMouseLeave={e => e.currentTarget.style.background="#e86c1a"}
+          style={{ background:"#e86c1a", color:"#fff", fontWeight:600, fontSize:"13px", letterSpacing:"0.12em", padding:"11px 32px", borderRadius:"8px", border:"none", cursor:"pointer" }}>
+          FAQs
           </button>
         </div>
       </div>
@@ -313,7 +312,6 @@ function ContentSection() {
     </div>
   );
 }
-
 //page layout
 export default function Home() {
   return (

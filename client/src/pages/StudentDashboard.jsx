@@ -476,7 +476,7 @@ function DashboardContent({ activeTab, onUpload, myDocs, myLoading, library, lib
   const filtered = docs.filter(d => {
     const matchCat    = category === "All" || d.category === category;
     const matchSearch = (d.title || "").toLowerCase().includes(search.toLowerCase())
-                     || (d.id    || "").toLowerCase().includes(search.toLowerCase());
+                 || String(d.id ?? "").toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 

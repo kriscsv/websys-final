@@ -692,7 +692,7 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
 
   const filtered = docs.filter(d => {
     const q = search.toLowerCase();
-    return (!search||d.title?.toLowerCase().includes(q)||d.id?.toLowerCase().includes(q))
+    return (!search||d.title?.toLowerCase().includes(q)||String(d.id).toLowerCase().includes(q))
       &&(!college||d.college===college)&&(!category||d.category===category)&&(!status||d.status===status);
   });
 
