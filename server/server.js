@@ -10,10 +10,6 @@ const userRoutes   = require("./routes/userRoutes");
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
-const reportRoutes = require("./routes/reportRoutes");
-const userRoutes   = require("./routes/userRoutes");
-
-
 app.use(cors()); 
 app.use(express.json());
 
