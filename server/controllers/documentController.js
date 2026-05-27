@@ -7,6 +7,7 @@ exports.getAllDocuments = async (req, res) => {
       id:           d.id,
       title:        d.title,
       category:     d.category,
+      year:         d.year,
       college:      d.college,
       department:   d.department,
       fileSize:     d.file_size,
@@ -34,6 +35,7 @@ exports.getMyDocuments = async (req, res) => {
       id:           d.id,
       title:        d.title,
       category:     d.category,
+      year:         d.year,
       college:      d.college,
       department:   d.department,
       fileSize:     d.file_size,
@@ -53,10 +55,10 @@ exports.getMyDocuments = async (req, res) => {
 
 exports.uploadDocument = async (req, res) => {
   try {
-    const { title, category } = req.body;
+    const { title, category, year } = req.body;
     const file = req.file;
 
-    if (!file || !title || !category)
+    if (!file || !title || !category || !year)
       return res.status(400).json({ message: "Missing fields" });
 
     const fileSize     = (file.size / 1024).toFixed(0) + " KB";
@@ -66,15 +68,16 @@ exports.uploadDocument = async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO documents 
-        (title, category, college, department, file_name, file_path, file_size, uploaded_by, uploader_name, uploader_role)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [title, category, college, department, file.originalname, file.path, fileSize, req.user.id, uploaderName, req.user.role || "student"]
+        (title, category, year, college, department, file_name, file_path, file_size, uploaded_by, uploader_name, uploader_role)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, category, year, college, department, file.originalname, file.path, fileSize, req.user.id, uploaderName, req.user.role || "student"]
     );
 
     res.status(201).json({
       id:            result.insertId,
       title,
       category,
+      year,
       file_size:     fileSize,
       status:        "Pending",
       uploader_name: uploaderName,
@@ -108,6 +111,34 @@ exports.deleteDocument = async (req, res) => {
   try {
     await db.query("DELETE FROM documents WHERE id = ?", [req.params.id]);
     res.json({ message: "Deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.downloadDocument = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT file_path, file_name FROM documents WHERE id = ?",
+      [req.params.id]
+    );
+
+    if (rows.length === 0)
+      return res.status(404).json({ message: "Document not found" });
+
+    const { file_path, file_name } = rows[0];
+    const fs   = require("fs");
+    const path = require("path");
+    const abs  = path.resolve(file_path);
+
+    if (!fs.existsSync(abs))
+      return res.status(404).json({ message: "File not found on server" });
+
+    const safeName = file_name || path.basename(abs);
+    res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.sendFile(abs);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

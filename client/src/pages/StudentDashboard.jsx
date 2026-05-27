@@ -25,7 +25,7 @@ function useFadeUp(delay = 0) {
   };
 }
 
-//read user from localStorage (set during sign in)
+// read user from localStorage (set during sign in)
 function useCurrentUser() {
   const [user, setUser] = useState(null);
 
@@ -53,7 +53,7 @@ function useCurrentUser() {
   return { user, loading: false, error: null };
 }
 
-//fetch student's own documents
+// fetch student's own documents
 function useMyDocuments() {
   const [docs,    setDocs]    = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +74,7 @@ function useMyDocuments() {
   return { docs, loading, error, refetch: fetch_ };
 }
 
-//fetch all library documents
+// fetch all library documents
 function useLibrary() {
   const [docs,    setDocs]    = useState([]);
   const [loading, setLoading] = useState(true);
@@ -93,7 +93,7 @@ function useLibrary() {
   return { docs, loading, error };
 }
 
-//Upload document
+// Upload document
 async function uploadDocument(formData) {
   const token = localStorage.getItem("token");
   const res = await fetch("http://localhost:5000/api/documents", {
@@ -105,14 +105,14 @@ async function uploadDocument(formData) {
   return res.json();
 }
 
-//Sign out
+// Sign out
 async function signOut() {
   localStorage.removeItem("token");
   localStorage.removeItem("role");
   localStorage.removeItem("user");
 }
 
-//constants
+// constants
 const CATEGORIES = ["All", "Thesis", "Capstone", "Research Paper", "Feasibility Study"];
 
 const CAT_STYLE = {
@@ -139,7 +139,7 @@ const inputStyle = {
 const focusStyle = { borderColor:"#2d3a8c", background:"#fff" };
 const blurStyle  = { borderColor:"#f4f4f4",  background:"#f4f4f4" };
 
-//icons
+// icons
 const UploadIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -158,7 +158,7 @@ const SearchIcon = () => (
   </svg>
 );
 
-//empty state
+// empty state
 function EmptyState({ message, sub }) {
   return (
     <div style={{ textAlign:"center", padding:"72px 0" }}>
@@ -173,7 +173,7 @@ function EmptyState({ message, sub }) {
   );
 }
 
-//skeleton row
+// skeleton row
 function SkeletonRow({ cols }) {
   return (
     <div style={{ display:"grid", gridTemplateColumns:cols, gap:"12px", padding:"14px 10px", borderBottom:"1px solid #f3f3f3" }}>
@@ -185,7 +185,7 @@ function SkeletonRow({ cols }) {
   );
 }
 
-//navbar
+// navbar
 function Navbar({ user, onProfileOpen }) {
   const initials = user ? user.fullName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase() : "?";
   const displayName = user ? user.fullName.split(" ")[0] : "—";
@@ -211,7 +211,7 @@ function Navbar({ user, onProfileOpen }) {
   );
 }
 
-//hero
+// hero
 function DashboardHero({ user, myDocs, activeTab, setActiveTab }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -259,114 +259,293 @@ function DashboardHero({ user, myDocs, activeTab, setActiveTab }) {
   );
 }
 
-//document row
+// download helper
+function downloadDoc(doc) {
+  const token = localStorage.getItem("token");
+  fetch(`http://localhost:5000/api/documents/${doc.id}/download`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Download failed");
+      return res.blob();
+    })
+    .then(blob => {
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = doc.title || `document-${doc.id}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => alert("Download failed. Please try again."));
+}
+
+const DownloadIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+);
+
+// document row
+// columns: My Docs  → title | category | year | status | download
+//          Library  → title | uploader | category | year | download
 function DocRow({ doc, showUploader, index }) {
-  const [hovered, setHovered] = useState(false);
-  const col = CAT_STYLE[doc.category]  || CAT_STYLE["Thesis"];
-  const sts = STATUS_STYLE[doc.status] || STATUS_STYLE["Pending"];
+  const [hovered,      setHovered]      = useState(false);
+  const [downloading,  setDownloading]  = useState(false);
+  const col  = CAT_STYLE[doc.category]  || CAT_STYLE["Thesis"];
+  const sts  = STATUS_STYLE[doc.status] || STATUS_STYLE["Pending"];
   const fade = useFadeUp(index * 0.04);
 
+  const colTemplate = showUploader
+    ? "2fr 1fr 1fr 90px 80px"   // library:   title | uploader | category | year | dl
+    : "2fr 1fr 90px 80px 80px"; // my docs:   title | category | year | status | dl
+
+  const handleDownload = async (e) => {
+    e.stopPropagation();
+    setDownloading(true);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:5000/api/documents/${doc.id}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Download failed");
+      const blob        = await res.blob();
+      const contentDisp = res.headers.get("Content-Disposition") || "";
+      const match       = contentDisp.match(/filename\*?=["']?(?:UTF-8'')?([^"';\n]+)/i);
+      const filename    = match ? decodeURIComponent(match[1]) : (doc.title || `document-${doc.id}`);
+      const url         = URL.createObjectURL(blob);
+      const a           = document.createElement("a");
+      a.href            = url;
+      a.download        = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Download failed. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-    <div ref={fade.ref} style={{ ...fade.style, display:"grid", gridTemplateColumns: showUploader ? "2fr 1fr 1fr 110px 70px 70px" : "2fr 1fr 110px 70px 80px 60px", alignItems:"center", gap:"12px", padding:"13px 10px", borderBottom:"1px solid #f3f3f3", cursor:"pointer", borderRadius:"8px", background: hovered ? "#fafafa" : "transparent", transition:"background 0.12s" }}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+    <div
+      ref={fade.ref}
+      style={{ ...fade.style, display:"grid", gridTemplateColumns:colTemplate, alignItems:"center", gap:"12px", padding:"13px 10px", borderBottom:"1px solid #f3f3f3", borderRadius:"8px", background: hovered ? "#fafafa" : "transparent", transition:"background 0.12s" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Title */}
       <div style={{ minWidth:0 }}>
         <p style={{ color:"#111", fontWeight:500, fontSize:"13px", margin:"0 0 3px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{doc.title}</p>
         <span style={{ color:"#ccc", fontSize:"11px" }}>{doc.id}</span>
       </div>
-      {showUploader && <span style={{ color:"#666", fontSize:"12px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{doc.uploaderName}</span>}
+
+      {/* Uploader (library only) */}
+      {showUploader && (
+        <span style={{ color:"#666", fontSize:"12px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{doc.uploaderName}</span>
+      )}
+
+      {/* Category */}
       <span style={{ display:"inline-flex", alignItems:"center", gap:"5px", background:col.bg, color:col.text, fontSize:"10px", fontWeight:600, letterSpacing:"0.05em", padding:"3px 9px", borderRadius:"20px", whiteSpace:"nowrap", width:"fit-content" }}>
         <span style={{ width:"5px", height:"5px", borderRadius:"50%", background:col.dot, flexShrink:0 }} />{doc.category}
       </span>
-      <span style={{ color:"#bbb", fontSize:"12px" }}>{doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}) : "—"}</span>
-      <span style={{ color:"#bbb", fontSize:"12px" }}>{doc.fileSize || "—"}</span>
-      {!showUploader
-        ? <span style={{ background:sts.bg, color:sts.text, fontSize:"10px", fontWeight:600, padding:"3px 9px", borderRadius:"20px", whiteSpace:"nowrap", width:"fit-content" }}>{doc.status}</span>
-        : <span style={{ color: hovered ? "#2d3a8c" : "#ddd", fontWeight:700, fontSize:"12px", transition:"color 0.15s", whiteSpace:"nowrap" }}>VIEW →</span>
-      }
+
+      {/* Year */}
+      <span style={{ color:"#888", fontSize:"12px", whiteSpace:"nowrap" }}>{doc.year || "—"}</span>
+
+      {/* Status (my docs only) */}
+      {!showUploader && (
+        <span style={{ background:sts.bg, color:sts.text, fontSize:"10px", fontWeight:600, padding:"3px 9px", borderRadius:"20px", whiteSpace:"nowrap", width:"fit-content" }}>{doc.status}</span>
+      )}
+
+      {/* Download button */}
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        title="Download"
+        style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"5px", padding:"6px 12px", borderRadius:"8px", border:"1.5px solid #ebebeb", background: hovered ? "#f4f6ff" : "#fff", color: downloading ? "#bbb" : "#2d3a8c", fontSize:"11px", fontWeight:600, cursor: downloading ? "wait" : "pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}
+        onMouseEnter={e => { e.currentTarget.style.background="#2d3a8c"; e.currentTarget.style.color="#fff"; e.currentTarget.style.borderColor="#2d3a8c"; }}
+        onMouseLeave={e => { e.currentTarget.style.background= hovered ? "#f4f6ff" : "#fff"; e.currentTarget.style.color="#2d3a8c"; e.currentTarget.style.borderColor="#ebebeb"; }}
+      >
+        <DownloadIcon />
+        {downloading ? "…" : ""}
+      </button>
     </div>
   );
 }
-//Upload modal
+
+// Upload modal
 function UploadModal({ onClose, onSuccess }) {
-  const [dragging, setDragging] = useState(false);
-  const [file,     setFile]     = useState(null);
-  const [category, setCategory] = useState("");
-  const [title,    setTitle]    = useState("");
+  const [dragging,    setDragging]    = useState(false);
+  const [file,        setFile]        = useState(null);
+  const [category,    setCategory]    = useState("");
+  const [title,       setTitle]       = useState("");
+  const [year,        setYear]        = useState("");           // ← new
   const [submitting,  setSubmitting]  = useState(false);
   const [submitError, setSubmitError] = useState("");
   const fileRef = useRef(null);
 
-  const handleDrop = (e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) setFile(f); };
-
-  const handleSubmit = async () => {
-    if (!file || !title.trim() || !category) return;
-    setSubmitting(true); setSubmitError("");
-    try {
-      const fd = new FormData();
-      fd.append("file", file); fd.append("title", title.trim()); fd.append("category", category);
-      await uploadDocument(fd);
-      onSuccess(); onClose();
-    } catch { setSubmitError("Upload failed. Please try again."); }
-    finally { setSubmitting(false); }
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    const f = e.dataTransfer.files[0];
+    if (f) setFile(f);
   };
 
-  const canSubmit = file && title.trim() && category && !submitting;
+  const handleSubmit = async () => {
+    if (!file || !title.trim() || !category || !year) return;
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const fd = new FormData();
+      fd.append("file",     file);
+      fd.append("title",    title.trim());
+      fd.append("category", category);
+      fd.append("year",     year);           // ← sent to backend
+      await uploadDocument(fd);
+      onSuccess();
+      onClose();
+    } catch {
+      setSubmitError("Upload failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const canSubmit = file && title.trim() && category && year && !submitting;
 
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:100, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div
+      style={{ position:"fixed", inset:0, zIndex:100, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div style={{ background:"#fff", borderRadius:"20px", padding:"36px 40px", width:"100%", maxWidth:"480px", boxShadow:"0 24px 64px rgba(0,0,0,0.2)" }}>
+
+        {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"6px" }}>
           <h2 style={{ color:"#111", fontSize:"1.15rem", fontWeight:600, margin:0 }}>Upload MFO Document</h2>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"#bbb", fontSize:"20px", lineHeight:1 }}>✕</button>
         </div>
-        <p style={{ color:"#aaa", fontSize:"13px", margin:"0 0 24px" }}>Your document will be reviewed by PKMD staff before it appears in the library.</p>
+        <p style={{ color:"#aaa", fontSize:"13px", margin:"0 0 24px" }}>
+          Your document will be reviewed by PKMD staff before it appears in the library.
+        </p>
 
-        {submitError && <div style={{ background:"#fff0f0", border:"1px solid #fcc", borderRadius:"8px", padding:"9px 13px", color:"#c0392b", fontSize:"13px", marginBottom:"14px" }}>{submitError}</div>}
+        {submitError && (
+          <div style={{ background:"#fff0f0", border:"1px solid #fcc", borderRadius:"8px", padding:"9px 13px", color:"#c0392b", fontSize:"13px", marginBottom:"14px" }}>
+            {submitError}
+          </div>
+        )}
 
-        <div onDragOver={e=>{e.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)} onDrop={handleDrop} onClick={()=>fileRef.current.click()}
-          style={{ border: dragging?"2px dashed #2d3a8c":file?"2px dashed #22c55e":"2px dashed #e0e0e0", borderRadius:"14px", padding:"32px", textAlign:"center", cursor:"pointer", background: dragging?"#eef2ff":file?"#f0fdf4":"#fafafa", transition:"all 0.15s", marginBottom:"16px" }}>
-          <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" style={{ display:"none" }} onChange={e=>setFile(e.target.files[0])} />
+        {/* Drop zone */}
+        <div
+          onDragOver={e => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => fileRef.current.click()}
+          style={{ border: dragging ? "2px dashed #2d3a8c" : file ? "2px dashed #22c55e" : "2px dashed #e0e0e0", borderRadius:"14px", padding:"32px", textAlign:"center", cursor:"pointer", background: dragging ? "#eef2ff" : file ? "#f0fdf4" : "#fafafa", transition:"all 0.15s", marginBottom:"16px" }}
+        >
+          <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" style={{ display:"none" }} onChange={e => setFile(e.target.files[0])} />
           {file ? (
-            <><p style={{ color:"#166534", fontWeight:600, fontSize:"13px", margin:"0 0 4px" }}>✓ {file.name}</p><p style={{ color:"#aaa", fontSize:"12px", margin:0 }}>Click to replace</p></>
+            <>
+              <p style={{ color:"#166534", fontWeight:600, fontSize:"13px", margin:"0 0 4px" }}>✓ {file.name}</p>
+              <p style={{ color:"#aaa", fontSize:"12px", margin:0 }}>Click to replace</p>
+            </>
           ) : (
-            <><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.5" style={{ marginBottom:"8px" }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <p style={{ color:"#aaa", fontSize:"13px", margin:0 }}>Drag & drop or <span style={{ color:"#2d3a8c", fontWeight:600 }}>browse</span></p>
-            <p style={{ color:"#bbb", fontSize:"11px", margin:"4px 0 0" }}>PDF, DOC, DOCX · max 20 MB</p></>
+            <>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.5" style={{ marginBottom:"8px" }}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p style={{ color:"#aaa", fontSize:"13px", margin:0 }}>Drag & drop or <span style={{ color:"#2d3a8c", fontWeight:600 }}>browse</span></p>
+              <p style={{ color:"#bbb", fontSize:"11px", margin:"4px 0 0" }}>PDF, DOC, DOCX · max 20 MB</p>
+            </>
           )}
         </div>
 
+        {/* Document Title */}
         <div style={{ marginBottom:"12px" }}>
-          <label style={{ fontSize:"10.5px", fontWeight:600, color:"#888", letterSpacing:"0.08em", textTransform:"uppercase", display:"block", marginBottom:"4px" }}>Document Title *</label>
-          <input type="text" placeholder="e.g. Smart Irrigation System Using IoT" value={title} onChange={e=>setTitle(e.target.value)} style={inputStyle} onFocus={e=>Object.assign(e.target.style,focusStyle)} onBlur={e=>Object.assign(e.target.style,blurStyle)} />
+          <label style={{ fontSize:"10.5px", fontWeight:600, color:"#888", letterSpacing:"0.08em", textTransform:"uppercase", display:"block", marginBottom:"4px" }}>
+            Document Title *
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Smart Irrigation System Using IoT"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            style={inputStyle}
+            onFocus={e => Object.assign(e.target.style, focusStyle)}
+            onBlur={e => Object.assign(e.target.style, blurStyle)}
+          />
         </div>
+
+        {/* Year Published */}
+        <div style={{ marginBottom:"12px" }}>
+          <label style={{ fontSize:"10.5px", fontWeight:600, color:"#888", letterSpacing:"0.08em", textTransform:"uppercase", display:"block", marginBottom:"4px" }}>
+            Year Published *
+          </label>
+          <input
+            type="number"
+            placeholder={`e.g. ${new Date().getFullYear()}`}
+            min="1900"
+            max={new Date().getFullYear()}
+            value={year}
+            onChange={e => setYear(e.target.value)}
+            style={inputStyle}
+            onFocus={e => Object.assign(e.target.style, focusStyle)}
+            onBlur={e => Object.assign(e.target.style, blurStyle)}
+          />
+        </div>
+
+        {/* Category */}
         <div style={{ marginBottom:"24px" }}>
-          <label style={{ fontSize:"10.5px", fontWeight:600, color:"#888", letterSpacing:"0.08em", textTransform:"uppercase", display:"block", marginBottom:"4px" }}>Document Category *</label>
-          <select value={category} onChange={e=>setCategory(e.target.value)} style={{ ...inputStyle, color:category?"#333":"#aaa" }} onFocus={e=>Object.assign(e.target.style,focusStyle)} onBlur={e=>Object.assign(e.target.style,blurStyle)}>
+          <label style={{ fontSize:"10.5px", fontWeight:600, color:"#888", letterSpacing:"0.08em", textTransform:"uppercase", display:"block", marginBottom:"4px" }}>
+            Document Category *
+          </label>
+          <select
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            style={{ ...inputStyle, color: category ? "#333" : "#aaa" }}
+            onFocus={e => Object.assign(e.target.style, focusStyle)}
+            onBlur={e => Object.assign(e.target.style, blurStyle)}
+          >
             <option value="" disabled>Select category…</option>
-            {["Thesis","Capstone","Research Paper","Feasibility Study"].map(c=><option key={c} value={c}>{c}</option>)}
+            {["Thesis","Capstone","Research Paper","Feasibility Study"].map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
         </div>
 
+        {/* Actions */}
         <div style={{ display:"flex", gap:"10px" }}>
-          <button onClick={onClose} style={{ flex:1, padding:"11px", borderRadius:"10px", border:"1.5px solid #ebebeb", background:"#fff", color:"#666", fontSize:"13px", fontWeight:600, cursor:"pointer" }}>Cancel</button>
-          <button disabled={!canSubmit} onClick={handleSubmit}
-            onMouseEnter={e=>{if(canSubmit)e.currentTarget.style.background="#d4590f";}}
-            onMouseLeave={e=>{if(canSubmit)e.currentTarget.style.background="#e86c1a";}}
-            style={{ flex:2, padding:"11px", borderRadius:"10px", background:canSubmit?"#e86c1a":"#f0a070", border:"none", color:"#fff", fontSize:"13px", fontWeight:700, letterSpacing:"0.08em", cursor:canSubmit?"pointer":"not-allowed", transition:"background 0.15s" }}>
+          <button
+            onClick={onClose}
+            style={{ flex:1, padding:"11px", borderRadius:"10px", border:"1.5px solid #ebebeb", background:"#fff", color:"#666", fontSize:"13px", fontWeight:600, cursor:"pointer" }}
+          >
+            Cancel
+          </button>
+          <button
+            disabled={!canSubmit}
+            onClick={handleSubmit}
+            onMouseEnter={e => { if (canSubmit) e.currentTarget.style.background="#d4590f"; }}
+            onMouseLeave={e => { if (canSubmit) e.currentTarget.style.background="#e86c1a"; }}
+            style={{ flex:2, padding:"11px", borderRadius:"10px", background:canSubmit?"#e86c1a":"#f0a070", border:"none", color:"#fff", fontSize:"13px", fontWeight:700, letterSpacing:"0.08em", cursor:canSubmit?"pointer":"not-allowed", transition:"background 0.15s" }}
+          >
             {submitting ? "UPLOADING…" : "SUBMIT DOCUMENT"}
           </button>
         </div>
+
       </div>
     </div>
   );
 }
 
-//profile panel
+// profile panel
 function ProfilePanel({ open, onClose, onUpload, onSignOut, user, myDocs }) {
   const initials = user ? user.fullName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase() : "?";
-  const approved = myDocs.filter(d=>d.status==="Approved").length;
-  const pending  = myDocs.filter(d=>d.status==="Pending").length;
+  const approved = myDocs.filter(d => d.status === "Approved").length;
+  const pending  = myDocs.filter(d => d.status === "Pending").length;
 
   return (
     <>
@@ -399,15 +578,19 @@ function ProfilePanel({ open, onClose, onUpload, onSignOut, user, myDocs }) {
         <div style={{ padding:"22px 28px", borderBottom:"1px solid #f0f0f0", flexShrink:0 }}>
           <p style={{ fontSize:"10px", fontWeight:600, color:"#bbb", letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 12px" }}>My MFO Documents</p>
           <div style={{ display:"flex", gap:"8px", marginBottom:"14px" }}>
-            {[{val:myDocs.length,label:"Total",color:"#2d3a8c"},{val:approved,label:"Approved",color:"#166534"},{val:pending,label:"Pending",color:"#854f0b"}].map(s=>(
+            {[{val:myDocs.length,label:"Total",color:"#2d3a8c"},{val:approved,label:"Approved",color:"#166534"},{val:pending,label:"Pending",color:"#854f0b"}].map(s => (
               <div key={s.label} style={{ flex:1, background:"#f8f8f8", borderRadius:"10px", padding:"10px 8px", textAlign:"center" }}>
                 <div style={{ color:s.color, fontWeight:700, fontSize:"18px", lineHeight:1 }}>{s.val}</div>
                 <div style={{ color:"#aaa", fontSize:"10px", marginTop:"3px" }}>{s.label}</div>
               </div>
             ))}
           </div>
-          <button onClick={()=>{onClose();onUpload();}} onMouseEnter={e=>e.currentTarget.style.background="#d4590f"} onMouseLeave={e=>e.currentTarget.style.background="#e86c1a"}
-            style={{ width:"100%", padding:"11px", background:"#e86c1a", color:"#fff", border:"none", borderRadius:"10px", fontSize:"13px", fontWeight:700, letterSpacing:"0.1em", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", transition:"background 0.15s" }}>
+          <button
+            onClick={() => { onClose(); onUpload(); }}
+            onMouseEnter={e => e.currentTarget.style.background="#d4590f"}
+            onMouseLeave={e => e.currentTarget.style.background="#e86c1a"}
+            style={{ width:"100%", padding:"11px", background:"#e86c1a", color:"#fff", border:"none", borderRadius:"10px", fontSize:"13px", fontWeight:700, letterSpacing:"0.1em", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", transition:"background 0.15s" }}
+          >
             <UploadIcon /> UPLOAD DOCUMENT
           </button>
         </div>
@@ -421,10 +604,15 @@ function ProfilePanel({ open, onClose, onUpload, onSignOut, user, myDocs }) {
                 const sts = STATUS_STYLE[doc.status] || STATUS_STYLE["Pending"];
                 return (
                   <div key={doc.id} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"9px 0", borderBottom:"1px solid #f5f5f5" }}>
-                    <div style={{ width:"32px", height:"36px", borderRadius:"6px", background:col.bg, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}><FileIcon color={col.dot} /></div>
+                    <div style={{ width:"32px", height:"36px", borderRadius:"6px", background:col.bg, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <FileIcon color={col.dot} />
+                    </div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ color:"#222", fontSize:"12px", fontWeight:500, margin:"0 0 2px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{doc.title}</p>
-                      <span style={{ color:"#ccc", fontSize:"10px" }}>{doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}) : "—"}</span>
+                      <span style={{ color:"#ccc", fontSize:"10px" }}>
+                        {doc.year ? `${doc.year} · ` : ""}
+                        {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}) : "—"}
+                      </span>
                     </div>
                     <span style={{ background:sts.bg, color:sts.text, fontSize:"10px", fontWeight:600, padding:"2px 7px", borderRadius:"20px", flexShrink:0 }}>{doc.status}</span>
                   </div>
@@ -434,11 +622,17 @@ function ProfilePanel({ open, onClose, onUpload, onSignOut, user, myDocs }) {
         </div>
 
         <div style={{ padding:"16px 28px 28px", flexShrink:0 }}>
-          <button onClick={onSignOut}
+          <button
+            onClick={onSignOut}
             style={{ width:"100%", padding:"11px", background:"none", border:"1.5px solid #f0f0f0", borderRadius:"10px", color:"#c0392b", fontSize:"13px", fontWeight:600, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", justifyContent:"center", gap:"7px" }}
-            onMouseEnter={e=>{e.currentTarget.style.background="#fff0f0";e.currentTarget.style.borderColor="#fcc";}}
-            onMouseLeave={e=>{e.currentTarget.style.background="none";e.currentTarget.style.borderColor="#f0f0f0";}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            onMouseEnter={e => { e.currentTarget.style.background="#fff0f0"; e.currentTarget.style.borderColor="#fcc"; }}
+            onMouseLeave={e => { e.currentTarget.style.background="none"; e.currentTarget.style.borderColor="#f0f0f0"; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
             Sign out
           </button>
         </div>
@@ -447,7 +641,7 @@ function ProfilePanel({ open, onClose, onUpload, onSignOut, user, myDocs }) {
   );
 }
 
-//dashboard
+// dashboard content
 function DashboardContent({ activeTab, onUpload, myDocs, myLoading, library, libLoading }) {
   const [category,    setCategory]    = useState("All");
   const [search,      setSearch]      = useState("");
@@ -476,14 +670,21 @@ function DashboardContent({ activeTab, onUpload, myDocs, myLoading, library, lib
   const filtered = docs.filter(d => {
     const matchCat    = category === "All" || d.category === category;
     const matchSearch = (d.title || "").toLowerCase().includes(search.toLowerCase())
-                 || String(d.id ?? "").toLowerCase().includes(search.toLowerCase());
+                     || String(d.id ?? "").toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 
   const H_PAD = "80px";
   const headerFade = useFadeUp(0);
-  const colTemplate = isMyDocs ? "2fr 1fr 110px 70px 80px 60px" : "2fr 1fr 1fr 110px 70px 70px";
-  const colHeaders  = isMyDocs ? ["Document","Category","Date","Size","Status",""] : ["Document","Uploaded by","Category","Date","Size",""];
+
+  // columns: My Docs → title | category | year | status | download
+  //          Library → title | uploader | category | year | download
+  const colTemplate = isMyDocs
+    ? "2fr 1fr 90px 80px 80px"
+    : "2fr 1fr 1fr 90px 80px";
+  const colHeaders = isMyDocs
+    ? ["Document", "Category", "Year", "Status", ""]
+    : ["Document", "Uploaded by", "Category", "Year", ""];
 
   return (
     <div ref={cardRef} style={{ ...entry, background:"#fff", borderRadius:"0 2rem 0 0", position:"relative", zIndex:10, willChange:"transform, opacity", minHeight:"60vh" }}>
@@ -494,37 +695,59 @@ function DashboardContent({ activeTab, onUpload, myDocs, myLoading, library, lib
             {isMyDocs ? "My Documents" : "Browse Library"}
           </h2>
           <p style={{ color:"#bbb", fontSize:"12px", margin:0 }}>
-            {loading ? "Loading…" : isMyDocs ? `${filtered.length} document${filtered.length!==1?"s":""} uploaded by you` : `${filtered.length} document${filtered.length!==1?"s":""} across all colleges`}
+            {loading
+              ? "Loading…"
+              : isMyDocs
+                ? `${filtered.length} document${filtered.length!==1?"s":""} uploaded by you`
+                : `${filtered.length} document${filtered.length!==1?"s":""} across all colleges`
+            }
           </p>
         </div>
         <div style={{ display:"flex", gap:"10px", alignItems:"center" }}>
           <div style={{ display:"flex", alignItems:"center", gap:"8px", background:searchFocus?"#fff":"#f4f4f4", border:searchFocus?"1.5px solid #2d3a8c":"1.5px solid #f4f4f4", borderRadius:"10px", padding:"8px 12px", transition:"border-color 0.15s, background 0.15s", minWidth:"220px" }}>
             <SearchIcon />
-            <input type="text" placeholder="Search by title or ID…" value={search} onChange={e=>setSearch(e.target.value)} onFocus={()=>setSearchFocus(true)} onBlur={()=>setSearchFocus(false)}
-              style={{ background:"none", border:"none", outline:"none", fontSize:"13px", color:"#333", width:"100%", fontFamily:"inherit" }} />
-            {search && <button onClick={()=>setSearch("")} style={{ background:"none", border:"none", cursor:"pointer", color:"#bbb", fontSize:"13px", padding:0 }}>✕</button>}
+            <input
+              type="text"
+              placeholder="Search by title or ID…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onFocus={() => setSearchFocus(true)}
+              onBlur={() => setSearchFocus(false)}
+              style={{ background:"none", border:"none", outline:"none", fontSize:"13px", color:"#333", width:"100%", fontFamily:"inherit" }}
+            />
+            {search && (
+              <button onClick={() => setSearch("")} style={{ background:"none", border:"none", cursor:"pointer", color:"#bbb", fontSize:"13px", padding:0 }}>✕</button>
+            )}
           </div>
           {isMyDocs && (
-            <button onClick={onUpload} onMouseEnter={e=>e.currentTarget.style.background="#d4590f"} onMouseLeave={e=>e.currentTarget.style.background="#e86c1a"}
-              style={{ background:"#e86c1a", color:"#fff", border:"none", borderRadius:"10px", padding:"9px 18px", fontSize:"13px", fontWeight:600, letterSpacing:"0.08em", cursor:"pointer", display:"flex", alignItems:"center", gap:"7px", transition:"background 0.15s" }}>
+            <button
+              onClick={onUpload}
+              onMouseEnter={e => e.currentTarget.style.background="#d4590f"}
+              onMouseLeave={e => e.currentTarget.style.background="#e86c1a"}
+              style={{ background:"#e86c1a", color:"#fff", border:"none", borderRadius:"10px", padding:"9px 18px", fontSize:"13px", fontWeight:600, letterSpacing:"0.08em", cursor:"pointer", display:"flex", alignItems:"center", gap:"7px", transition:"background 0.15s" }}
+            >
               <UploadIcon /> UPLOAD
             </button>
           )}
         </div>
       </div>
 
+      {/* Category filters */}
       <div style={{ padding:`16px ${H_PAD} 0`, display:"flex", gap:"8px", flexWrap:"wrap" }}>
         {CATEGORIES.map(cat => {
           const active = cat === category;
           return (
-            <button key={cat} onClick={()=>setCategory(cat)}
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
               style={{ padding:"6px 16px", borderRadius:"30px", border:active?"none":"1.5px solid #ebebeb", background:active?"#2d3a8c":"#fff", color:active?"#fff":"#888", fontSize:"12px", fontWeight:active?600:400, cursor:"pointer", transition:"all 0.15s" }}
-              onMouseEnter={e=>{if(!active){e.currentTarget.style.borderColor="#2d3a8c";e.currentTarget.style.color="#2d3a8c";}}}
-              onMouseLeave={e=>{if(!active){e.currentTarget.style.borderColor="#ebebeb";e.currentTarget.style.color="#888";}}}>
+              onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor="#2d3a8c"; e.currentTarget.style.color="#2d3a8c"; } }}
+              onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor="#ebebeb"; e.currentTarget.style.color="#888"; } }}
+            >
               {cat}
               {cat !== "All" && (
                 <span style={{ marginLeft:"6px", background:active?"rgba(255,255,255,0.2)":"#f0f0f0", color:active?"#fff":"#bbb", fontSize:"10px", fontWeight:600, padding:"1px 6px", borderRadius:"10px" }}>
-                  {docs.filter(d=>d.category===cat).length}
+                  {docs.filter(d => d.category === cat).length}
                 </span>
               )}
             </button>
@@ -532,16 +755,24 @@ function DashboardContent({ activeTab, onUpload, myDocs, myLoading, library, lib
         })}
       </div>
 
+      {/* Table */}
       <div style={{ padding:`18px ${H_PAD} 0` }}>
         <div style={{ display:"grid", gridTemplateColumns:colTemplate, gap:"12px", padding:"0 10px 10px", borderBottom:"2px solid #f0f0f0" }}>
-          {colHeaders.map((h,i) => <span key={i} style={{ fontSize:"10.5px", fontWeight:600, color:"#bbb", letterSpacing:"0.08em", textTransform:"uppercase" }}>{h}</span>)}
+          {colHeaders.map((h, i) => (
+            <span key={i} style={{ fontSize:"10.5px", fontWeight:600, color:"#bbb", letterSpacing:"0.08em", textTransform:"uppercase" }}>{h}</span>
+          ))}
         </div>
         <div style={{ paddingBottom:"48px" }}>
           {loading
-            ? [1,2,3,4].map(i=><SkeletonRow key={i} cols={colTemplate}/>)
+            ? [1,2,3,4].map(i => <SkeletonRow key={i} cols={colTemplate} />)
             : filtered.length === 0
-              ? <EmptyState message={isMyDocs?"No documents uploaded yet.":"No documents found."} sub={isMyDocs?"Upload your first MFO document to get started.":"Try adjusting your search or filter."} />
-              : filtered.map((doc,i) => <DocRow key={doc.id||i} doc={doc} showUploader={!isMyDocs} index={i} />)
+              ? <EmptyState
+                  message={isMyDocs ? "No documents uploaded yet." : "No documents found."}
+                  sub={isMyDocs ? "Upload your first MFO document to get started." : "Try adjusting your search or filter."}
+                />
+              : filtered.map((doc, i) => (
+                  <DocRow key={doc.id||i} doc={doc} showUploader={!isMyDocs} index={i} />
+                ))
           }
         </div>
       </div>
@@ -559,16 +790,16 @@ function DashboardContent({ activeTab, onUpload, myDocs, myLoading, library, lib
   );
 }
 
-//Page 
+// Page
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const [activeTab,   setActiveTab]   = useState("My Documents");
   const [profileOpen, setProfileOpen] = useState(false);
   const [uploadOpen,  setUploadOpen]  = useState(false);
 
-  const { user }                                              = useCurrentUser();
-  const { docs: myDocs,  loading: myLoading,  refetch }      = useMyDocuments();
-  const { docs: library, loading: libLoading }               = useLibrary();
+  const { user }                                         = useCurrentUser();
+  const { docs: myDocs,  loading: myLoading,  refetch } = useMyDocuments();
+  const { docs: library, loading: libLoading }          = useLibrary();
 
   const handleSignOut = async () => { await signOut(); navigate("/signin"); };
 
@@ -580,11 +811,30 @@ export default function StudentDashboard() {
         <DashboardHero user={user} myDocs={myDocs} activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
 
-      <DashboardContent activeTab={activeTab} onUpload={()=>setUploadOpen(true)} myDocs={myDocs} myLoading={myLoading} library={library} libLoading={libLoading} />
+      <DashboardContent
+        activeTab={activeTab}
+        onUpload={() => setUploadOpen(true)}
+        myDocs={myDocs}
+        myLoading={myLoading}
+        library={library}
+        libLoading={libLoading}
+      />
 
-      <ProfilePanel open={profileOpen} onClose={()=>setProfileOpen(false)} onUpload={()=>setUploadOpen(true)} onSignOut={handleSignOut} user={user} myDocs={myDocs} />
+      <ProfilePanel
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        onUpload={() => setUploadOpen(true)}
+        onSignOut={handleSignOut}
+        user={user}
+        myDocs={myDocs}
+      />
 
-      {uploadOpen && <UploadModal onClose={()=>setUploadOpen(false)} onSuccess={()=>refetch()} />}
+      {uploadOpen && (
+        <UploadModal
+          onClose={() => setUploadOpen(false)}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }
