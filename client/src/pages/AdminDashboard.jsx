@@ -128,6 +128,17 @@ async function deleteDocument(id) {
   const token = localStorage.getItem("token");
   await fetch(`http://localhost:5000/api/documents/${id}`, { method:"DELETE", headers:{ Authorization:`Bearer ${token}` } });
 }
+async function archiveDocument(id) {
+  const token = localStorage.getItem("token");
+  await fetch(`http://localhost:5000/api/documents/${id}`, { 
+    method: "PATCH", 
+    headers: { 
+      Authorization: `Bearer ${token}`, 
+      "Content-Type": "application/json" 
+    }, 
+    body: JSON.stringify({ status: "Archived" }) 
+  });
+}
 async function generateReport(payload) {
   const token = localStorage.getItem("token");
   const res = await fetch("http://localhost:5000/api/reports", { method:"POST", headers:{ Authorization:`Bearer ${token}`, "Content-Type":"application/json" }, body: JSON.stringify(payload) });
@@ -156,6 +167,7 @@ const STATUS_STYLE = {
   "Approved": { bg:"#f0fdf4", text:"#166534" },
   "Pending":  { bg:"#fff7ed", text:"#854f0b" },
   "Rejected": { bg:"#fff0f0", text:"#b91c1c" },
+  "Archived": { bg:"#f3f4f6", text:"#4b5563" },
 };
 const ROLE_STYLE = {
   "Super admin": { bg:"#fff7ed", text:"#854f0b" },
@@ -261,6 +273,14 @@ const IconTrash = () => (
     <polyline points="3 6 5 6 21 6"/>
     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
     <path d="M10 11v6"/><path d="M14 11v6"/>
+  </svg>
+);
+
+const IconArchive = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <polyline points="21 8 21 21 3 21 3 8"/>
+    <rect x="1" y="3" width="22" height="5" rx="1"/>
+    <line x1="10" y1="12" x2="14" y2="12"/>
   </svg>
 );
 
@@ -639,6 +659,23 @@ function OverviewPanel({ stats, docs, reports }) {
   );
 }
 
+// Style for action buttons in document actions dropdown
+const actionBtnStyle = {
+  width: "100%",
+  background: "none",
+  border: "none",
+  color: "#333",
+  fontSize: "13px",
+  fontWeight: 500,
+  padding: "10px 16px",
+  textAlign: "left",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  cursor: "pointer",
+  transition: "background 0.13s, color 0.13s",
+};
+
 function DocumentsPanel({ docs, loading, onRefetch }) {
   const [search,   setSearch]   = useState("");
   const [college,  setCollege]  = useState("");
@@ -658,6 +695,7 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
     if (action==="approve") await approveDocument(id);
     if (action==="reject")  await rejectDocument(id);
     if (action==="delete")  await deleteDocument(id);
+    if (action==="archive") await archiveDocument(id);
     onRefetch(); setActionDoc(null);
   };
 
@@ -667,7 +705,7 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
         <SearchBox value={search} onChange={setSearch} placeholder="Search title or ID…" />
         <FilterSelect value={college}  onChange={setCollege}  placeholder="All colleges"   options={["College of Engineering","College of Science","College of Nursing","College of Education","College of Business, Economics, and Management","College of Arts and Letters","College of Law","Graduate School"]} />
         <FilterSelect value={category} onChange={setCategory} placeholder="All categories" options={["Thesis","Capstone","Research Paper","Feasibility Study"]} />
-        <FilterSelect value={status}   onChange={setStatus}   placeholder="All statuses"   options={["Approved","Pending","Rejected"]} />
+        <FilterSelect value={status}   onChange={setStatus}   placeholder="All statuses"   options={["Approved","Pending","Rejected", "Archived"]} />
       </div>
       <ColHeader cols={COL} headers={["Document","College","Category","Date","Size","Status",""]} />
       {loading ? <SkeletonRow cols={COL} /> : filtered.length===0 ? <EmptyState icon={IconDoc} message="No documents found." sub="Try adjusting your filters." /> : filtered.map(doc => {
@@ -688,18 +726,37 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
             <span style={{ background:sts.bg, color:sts.text, fontSize:"10px", fontWeight:600, padding:"3px 9px", borderRadius:"20px", width:"fit-content" }}>{doc.status}</span>
             <div style={{ position:"relative" }}>
               <GhostBtn onClick={()=>setActionDoc(actionDoc===doc.id?null:doc.id)}>Actions ▾</GhostBtn>
-              {actionDoc===doc.id && (
-                <div style={{ position:"absolute", right:0, top:"calc(100% + 4px)", background:"#fff", border:"1px solid #ebebeb", borderRadius:"10px", boxShadow:"0 8px 24px rgba(0,0,0,0.1)", zIndex:10, minWidth:"140px", overflow:"hidden" }}>
-                  {[{action:"approve",label:"Approve",Icon:IconCheck},{action:"reject",label:"Reject",Icon:IconX},{action:"delete",label:"Delete",Icon:IconTrash,danger:true}].map(a => (
-                    <button key={a.action} onClick={()=>handleAction(a.action,doc.id)}
-                      style={{ display:"flex", alignItems:"center", gap:"8px", width:"100%", padding:"9px 14px", background:"none", border:"none", textAlign:"left", fontSize:"13px", cursor:"pointer", color:a.danger?"#c0392b":"#333" }}
-                      onMouseEnter={e=>e.currentTarget.style.background="#f8f8f8"}
-                      onMouseLeave={e=>e.currentTarget.style.background="none"}>
-                      <a.Icon /> {a.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {actionDoc === doc.id && (
+  <div style={{ position: "absolute", right: 0, top: "calc(100% + 4px)", background: "#fff", border: "1px solid #ebebeb", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", zIndex: 10, minWidth: "140px", overflow: "hidden" }}>
+    {/* Base actions common or conditional */}
+    {doc.status !== "Approved" && (
+      <button onClick={() => handleAction("approve", doc.id)} style={actionBtnStyle}>
+        <IconCheck /> Approve
+      </button>
+    )}
+    {doc.status !== "Rejected" && (
+      <button onClick={() => handleAction("reject", doc.id)} style={actionBtnStyle}>
+        <IconX /> Reject
+      </button>
+    )}
+    
+    {/* Contextual Soft-Delete vs Restore Toggle */}
+    {doc.status === "Archived" ? (
+      <button onClick={() => handleAction("approve", doc.id)} style={{ ...actionBtnStyle, color: "#2d3a8c" }}>
+        <IconCheck /> Restore
+      </button>
+    ) : (
+      <button onClick={() => handleAction("archive", doc.id)} style={actionBtnStyle}>
+        <IconArchive /> Archive
+      </button>
+    )}
+
+    {/* Hard permanent delete */}
+    <button onClick={() => handleAction("delete", doc.id)} style={{ ...actionBtnStyle, color: "#c0392b" }}>
+      <IconTrash /> Delete
+    </button>
+  </div>
+)}
             </div>
           </div>
         );
