@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import BgSVG from "../assets/bg-01.svg";
 
-// ── Fade-up hook ──────────────────────────────────────────────────────────────
 function useFadeUp(delay = 0) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -26,7 +25,6 @@ function useFadeUp(delay = 0) {
   };
 }
 
-// ── Read admin user from localStorage ────────────────────────────────────────
 function useAdminUser() {
   const [user, setUser] = useState(null);
   useEffect(() => {
@@ -47,7 +45,6 @@ function useAdminUser() {
   return { user, loading: false };
 }
 
-// ── Data hooks (backend-ready) ────────────────────────────────────────────────
 function useDocuments() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -147,7 +144,6 @@ async function signOut() {
   localStorage.removeItem("user");
 }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
 const TABS = ["Overview", "Documents", "Reports", "Users", "Access Logs"];
 
 const CAT_STYLE = {
@@ -178,7 +174,6 @@ const inputStyle = {
 const focusStyle = { borderColor:"#2d3a8c", background:"#fff" };
 const blurStyle  = { borderColor:"#f4f4f4",  background:"#f4f4f4" };
 
-// ── SVG Icons (no emojis) ─────────────────────────────────────────────────────
 const IconDoc = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -194,11 +189,6 @@ const IconSchool = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
     <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
     <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-  </svg>
-);
-const IconShield = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
   </svg>
 );
 const IconChart = () => (
@@ -274,7 +264,6 @@ const IconTrash = () => (
   </svg>
 );
 
-// ── Shared components ─────────────────────────────────────────────────────────
 function SearchBox({ value, onChange, placeholder = "Search…" }) {
   const [focus, setFocus] = useState(false);
   return (
@@ -348,7 +337,6 @@ function GhostBtn({ onClick, children }) {
   );
 }
 
-// ── Navbar ────────────────────────────────────────────────────────────────────
 function Navbar({ user, onProfileOpen }) {
   const initials = user ? user.fullName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase() : "SA";
   return (
@@ -369,16 +357,14 @@ function Navbar({ user, onProfileOpen }) {
   );
 }
 
-// ── Hero ──────────────────────────────────────────────────────────────────────
 function AdminHero({ user, stats, activeTab, setActiveTab }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   const pills = [
-    { val: stats?.totalDocs     ?? "—", label:"Total documents", Icon: IconDoc,    warn: false },
-    { val: stats?.pendingDocs   ?? "—", label:"Pending review",  Icon: IconClock,  warn: false },
-    { val: stats?.totalColleges ?? "—", label:"Colleges",        Icon: IconSchool, warn: false },
-    { val: stats?.alerts        ?? "—", label:"Security alerts", Icon: IconShield, warn: (stats?.alerts ?? 0) > 0 },
+    { val: stats?.totalDocs   ?? "—", label:"Total documents", Icon: IconDoc,   warn: false },
+    { val: stats?.pendingDocs ?? "—", label:"Pending review",  Icon: IconClock, warn: false },
+    { val: stats?.totalColleges ?? "—", label:"Colleges",      Icon: IconSchool, warn: false },
   ];
 
   return (
@@ -392,16 +378,14 @@ function AdminHero({ user, stats, activeTab, setActiveTab }) {
       <p style={{ color:"rgba(255,255,255,0.45)", fontSize:"13px", margin:"0 0 28px" }}>
         {user ? `${user.role} · ${user.college ?? "All colleges"}` : "—"}
       </p>
-
       <div style={{ display:"flex", gap:"12px", marginBottom:"36px", flexWrap:"wrap" }}>
         {pills.map(s => (
-          <div key={s.label} style={{ background:s.warn?"rgba(232,108,26,0.18)":"rgba(255,255,255,0.1)", border:s.warn?"1px solid rgba(232,108,26,0.5)":"1px solid rgba(255,255,255,0.15)", borderRadius:"12px", padding:"10px 20px", display:"flex", flexDirection:"column" }}>
-            <span style={{ color:s.warn?"#e86c1a":"#fff", fontWeight:700, fontSize:"20px", lineHeight:1 }}>{s.val}</span>
+          <div key={s.label} style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:"12px", padding:"10px 20px", display:"flex", flexDirection:"column" }}>
+            <span style={{ color:"#fff", fontWeight:700, fontSize:"20px", lineHeight:1 }}>{s.val}</span>
             <span style={{ color:"rgba(255,255,255,0.5)", fontSize:"11px", marginTop:"3px" }}>{s.label}</span>
           </div>
         ))}
       </div>
-
       <div style={{ display:"flex", gap:"4px", flexWrap:"wrap" }}>
         {TABS.map(tab => (
           <button key={tab} onClick={()=>setActiveTab(tab)}
@@ -414,14 +398,12 @@ function AdminHero({ user, stats, activeTab, setActiveTab }) {
   );
 }
 
-// ── Profile panel ─────────────────────────────────────────────────────────────
 function ProfilePanel({ open, onClose, onSignOut, user }) {
   const initials = user ? user.fullName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase() : "SA";
   return (
     <>
       {open && <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:49, background:"rgba(0,0,0,0.3)" }} />}
       <div style={{ position:"fixed", top:0, right:0, bottom:0, zIndex:50, width:"320px", background:"#fff", boxShadow:"-12px 0 48px rgba(0,0,0,0.15)", transform:open?"translateX(0)":"translateX(100%)", transition:"transform 0.3s cubic-bezier(0.4,0,0.2,1)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
-
         <div style={{ background:"#2d3a8c", padding:"28px 28px 24px", position:"relative", flexShrink:0 }}>
           <button onClick={onClose} style={{ position:"absolute", top:"14px", right:"14px", background:"rgba(255,255,255,0.12)", border:"none", color:"#fff", borderRadius:"8px", width:"28px", height:"28px", cursor:"pointer", fontSize:"14px", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
           <div style={{ width:"56px", height:"56px", borderRadius:"50%", background:"#e86c1a", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:"20px", fontWeight:700, marginBottom:"14px" }}>{initials}</div>
@@ -429,7 +411,6 @@ function ProfilePanel({ open, onClose, onSignOut, user }) {
           <p style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", margin:"0 0 8px" }}>{user?.email ?? "—"}</p>
           {user?.role && <span style={{ background:"rgba(255,255,255,0.15)", color:"#fff", fontSize:"10px", fontWeight:600, letterSpacing:"0.08em", padding:"3px 9px", borderRadius:"20px" }}>{user.role.toUpperCase()}</span>}
         </div>
-
         <div style={{ padding:"22px 28px", borderBottom:"1px solid #f0f0f0", flexShrink:0 }}>
           <p style={{ fontSize:"10px", fontWeight:600, color:"#bbb", letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 14px" }}>Account Information</p>
           {[
@@ -443,7 +424,6 @@ function ProfilePanel({ open, onClose, onSignOut, user }) {
             </div>
           ))}
         </div>
-
         <div style={{ padding:"22px 28px", borderBottom:"1px solid #f0f0f0", flex:1 }}>
           <p style={{ fontSize:"10px", fontWeight:600, color:"#bbb", letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 12px" }}>Permissions</p>
           {[
@@ -460,7 +440,6 @@ function ProfilePanel({ open, onClose, onSignOut, user }) {
             </div>
           ))}
         </div>
-
         <div style={{ padding:"16px 28px 28px", flexShrink:0 }}>
           <button onClick={onSignOut}
             style={{ width:"100%", padding:"11px", background:"none", border:"1.5px solid #f0f0f0", borderRadius:"10px", color:"#c0392b", fontSize:"13px", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:"7px", transition:"all 0.15s" }}
@@ -474,20 +453,18 @@ function ProfilePanel({ open, onClose, onSignOut, user }) {
   );
 }
 
-// ── Modals ────────────────────────────────────────────────────────────────────
 function GenerateReportModal({ onClose, onSuccess }) {
   const [college,  setCollege]  = useState("");
   const [year,     setYear]     = useState("");
-  const [quarter,  setQuarter]  = useState("");
   const [category, setCategory] = useState("");
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState("");
-  const canGenerate = year && quarter;
+  const canGenerate = !!year;
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
     setLoading(true); setError("");
-    try { await generateReport({ college, year, quarter, category }); onSuccess(); onClose(); }
+    try { await generateReport({ college, year, category }); onSuccess(); onClose(); }
     catch { setError("Failed to generate report. Please try again."); }
     finally { setLoading(false); }
   };
@@ -500,14 +477,13 @@ function GenerateReportModal({ onClose, onSuccess }) {
           <h2 style={{ color:"#111", fontSize:"1.15rem", fontWeight:600, margin:0 }}>Generate Report</h2>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"#bbb", fontSize:"20px", lineHeight:1 }}>✕</button>
         </div>
-        <p style={{ color:"#aaa", fontSize:"13px", margin:"0 0 24px" }}>Filter by college, year, quarter, and category to generate a report.</p>
+        <p style={{ color:"#aaa", fontSize:"13px", margin:"0 0 24px" }}>Filter by college, year, and category to generate a report.</p>
         {error && <div style={{ background:"#fff0f0", border:"1px solid #fcc", borderRadius:"8px", padding:"9px 13px", color:"#c0392b", fontSize:"13px", marginBottom:"14px" }}>{error}</div>}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginBottom:"12px" }}>
           {[
-            { label:"College", val:college, set:setCollege, opts:["College of Engineering","College of Science","College of Nursing","College of Education","College of Business, Economics, and Management","College of Arts and Letters","College of Law","Graduate School"], ph:"All colleges", req:false },
-            { label:"Year *",  val:year,    set:setYear,    opts:["2026","2025","2024","2023"], ph:"Select year…", req:true },
-            { label:"Quarter *",val:quarter,set:setQuarter, opts:["Q1","Q2","Q3","Q4"], ph:"Select quarter…", req:true },
-            { label:"Category", val:category,set:setCategory,opts:["Thesis","Capstone","Research Paper","Feasibility Study"], ph:"All categories", req:false },
+            { label:"College",    val:college,  set:setCollege,  opts:["College of Engineering","College of Science","College of Nursing","College of Education","College of Business, Economics, and Management","College of Arts and Letters","College of Law","Graduate School"], ph:"All colleges" },
+            { label:"Year *",     val:year,     set:setYear,     opts:["2026","2025","2024","2023"], ph:"Select year…" },
+            { label:"Category",   val:category, set:setCategory, opts:["Thesis","Capstone","Research Paper","Feasibility Study"], ph:"All categories" },
           ].map(f => (
             <div key={f.label}>
               <label style={{ fontSize:"10.5px", fontWeight:600, color:"#888", letterSpacing:"0.08em", textTransform:"uppercase", display:"block", marginBottom:"4px" }}>{f.label}</label>
@@ -599,25 +575,22 @@ function CreateStaffModal({ onClose, onSuccess }) {
   );
 }
 
-// ── Tab panels ────────────────────────────────────────────────────────────────
-function OverviewPanel({ stats, docs, reports, logs }) {
+function OverviewPanel({ stats, docs, reports }) {
   const f0 = useFadeUp(0);
   const f1 = useFadeUp(0.07);
   const f2 = useFadeUp(0.12);
   const recentDocs    = docs.slice(0,5);
   const recentReports = reports.slice(0,3);
-  const recentAlerts  = logs.filter(l=>l.isAlert).slice(0,4);
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:"24px" }}>
-      <div ref={f0.ref} style={{ ...f0.style, display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"14px" }}>
+      <div ref={f0.ref} style={{ ...f0.style, display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"14px" }}>
         {[
-          { label:"Total MFO documents", val:stats?.totalDocs??  "—", Icon:IconDoc,    color:"#2d3a8c", warn:false },
-          { label:"Pending review",      val:stats?.pendingDocs??"—", Icon:IconClock,  color:"#854f0b", warn:false },
-          { label:"Colleges enrolled",   val:stats?.totalColleges??"—",Icon:IconSchool,color:"#166534", warn:false },
-          { label:"Security alerts",     val:stats?.alerts??      "—", Icon:IconShield, color:"#b91c1c", warn:(stats?.alerts??0)>0 },
+          { label:"Total MFO documents", val:stats?.totalDocs??  "—", Icon:IconDoc,    color:"#2d3a8c" },
+          { label:"Pending review",      val:stats?.pendingDocs??"—", Icon:IconClock,  color:"#854f0b" },
+          { label:"Colleges enrolled",   val:stats?.totalColleges??"—",Icon:IconSchool,color:"#166534" },
         ].map(s => (
-          <div key={s.label} style={{ background:"#fff", border:s.warn?"1.5px solid #fcc":"1.5px solid #f0f0f0", borderRadius:"14px", padding:"18px 20px" }}>
+          <div key={s.label} style={{ background:"#fff", border:"1.5px solid #f0f0f0", borderRadius:"14px", padding:"18px 20px" }}>
             <div style={{ color:s.color, marginBottom:"8px" }}><s.Icon /></div>
             <div style={{ color:s.color, fontWeight:700, fontSize:"24px", lineHeight:1 }}>{s.val}</div>
             <div style={{ color:"#aaa", fontSize:"12px", marginTop:"4px" }}>{s.label}</div>
@@ -625,42 +598,25 @@ function OverviewPanel({ stats, docs, reports, logs }) {
         ))}
       </div>
 
-      <div ref={f1.ref} style={{ ...f1.style, display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
-        <div style={{ background:"#fff", border:"1.5px solid #f0f0f0", borderRadius:"14px", padding:"20px 22px" }}>
-          <p style={{ fontSize:"10.5px", fontWeight:600, color:"#bbb", letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 14px" }}>Recent submissions</p>
-          {recentDocs.length === 0
-            ? <p style={{ color:"#ccc", fontSize:"13px", textAlign:"center", padding:"24px 0" }}>No documents yet.</p>
-            : recentDocs.map(doc => {
-                const col = CAT_STYLE[doc.category]||CAT_STYLE["Thesis"];
-                const sts = STATUS_STYLE[doc.status]||STATUS_STYLE["Pending"];
-                return (
-                  <div key={doc.id} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"8px 0", borderBottom:"1px solid #f5f5f5" }}>
-                    <div style={{ width:"28px", height:"32px", borderRadius:"5px", background:col.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:col.text }}><IconDoc /></div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ color:"#111", fontSize:"12px", fontWeight:500, margin:"0 0 2px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{doc.title}</p>
-                      <span style={{ color:"#ccc", fontSize:"11px" }}>{doc.college}</span>
-                    </div>
-                    <span style={{ background:sts.bg, color:sts.text, fontSize:"10px", fontWeight:600, padding:"2px 7px", borderRadius:"20px", flexShrink:0 }}>{doc.status}</span>
+      <div ref={f1.ref} style={{ ...f1.style, background:"#fff", border:"1.5px solid #f0f0f0", borderRadius:"14px", padding:"20px 22px" }}>
+        <p style={{ fontSize:"10.5px", fontWeight:600, color:"#bbb", letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 14px" }}>Recent submissions</p>
+        {recentDocs.length === 0
+          ? <p style={{ color:"#ccc", fontSize:"13px", textAlign:"center", padding:"24px 0" }}>No documents yet.</p>
+          : recentDocs.map(doc => {
+              const col = CAT_STYLE[doc.category]||CAT_STYLE["Thesis"];
+              const sts = STATUS_STYLE[doc.status]||STATUS_STYLE["Pending"];
+              return (
+                <div key={doc.id} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"8px 0", borderBottom:"1px solid #f5f5f5" }}>
+                  <div style={{ width:"28px", height:"32px", borderRadius:"5px", background:col.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:col.text }}><IconDoc /></div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ color:"#111", fontSize:"12px", fontWeight:500, margin:"0 0 2px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{doc.title}</p>
+                    <span style={{ color:"#ccc", fontSize:"11px" }}>{doc.college}</span>
                   </div>
-                );
-              })
-          }
-        </div>
-        <div style={{ background:"#fff", border:recentAlerts.length>0?"1.5px solid #fcc":"1.5px solid #f0f0f0", borderRadius:"14px", padding:"20px 22px" }}>
-          <p style={{ fontSize:"10.5px", fontWeight:600, color:recentAlerts.length>0?"#c0392b":"#bbb", letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 14px" }}>Security alerts</p>
-          {recentAlerts.length === 0
-            ? <div style={{ textAlign:"center", padding:"24px 0" }}><p style={{ color:"#ccc", fontSize:"13px", margin:0 }}>No alerts at this time.</p></div>
-            : recentAlerts.map((log,i) => (
-                <div key={i} style={{ display:"flex", gap:"10px", padding:"8px 0", borderBottom:"1px solid #f5f5f5", fontSize:"12px" }}>
-                  <span style={{ color:"#c0392b", flexShrink:0 }}><IconAlert /></span>
-                  <div>
-                    <p style={{ color:"#333", fontWeight:500, margin:"0 0 2px" }}>{log.action}</p>
-                    <span style={{ color:"#bbb", fontSize:"11px" }}>{log.user} · {log.timestamp}</span>
-                  </div>
+                  <span style={{ background:sts.bg, color:sts.text, fontSize:"10px", fontWeight:600, padding:"2px 7px", borderRadius:"20px", flexShrink:0 }}>{doc.status}</span>
                 </div>
-              ))
-          }
-        </div>
+              );
+            })
+        }
       </div>
 
       <div ref={f2.ref} style={{ ...f2.style, background:"#fff", border:"1.5px solid #f0f0f0", borderRadius:"14px", padding:"20px 22px" }}>
@@ -672,7 +628,7 @@ function OverviewPanel({ stats, docs, reports, logs }) {
                 <span style={{ color:"#2d3a8c" }}><IconChart /></span>
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ color:"#111", fontWeight:500, fontSize:"13px", margin:"0 0 2px" }}>{r.title}</p>
-                  <span style={{ color:"#bbb", fontSize:"11px" }}>{r.filters} · {r.generatedAt}</span>
+                  <span style={{ color:"#bbb", fontSize:"11px" }}>{r.college ?? "All colleges"} · {r.year}</span>
                 </div>
                 <GhostBtn onClick={()=>{}}><IconDownload /> Export</GhostBtn>
               </div>
@@ -692,7 +648,7 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
 
   const filtered = docs.filter(d => {
     const q = search.toLowerCase();
-    return (!search||d.title?.toLowerCase().includes(q)||String(d.id).toLowerCase().includes(q))
+    return (!search||d.title?.toLowerCase().includes(q)||String(d.id ?? "").toLowerCase().includes(q))
       &&(!college||d.college===college)&&(!category||d.category===category)&&(!status||d.status===status);
   });
 
@@ -752,34 +708,31 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
   );
 }
 
-function ReportsPanel({ reports, loading, onGenerate, onRefetch }) {
-  const [college, setCollege] = useState("");
-  const [year,    setYear]    = useState("");
-  const [quarter, setQuarter] = useState("");
-  const [category,setCategory]= useState("");
-  const filtered = reports.filter(r=>(!college||r.college===college)&&(!year||r.year===year)&&(!quarter||r.quarter===quarter)&&(!category||r.category===category));
-  const COL = "2fr 1fr 1fr 1fr 100px 80px";
+function ReportsPanel({ reports, loading, onGenerate }) {
+  const [college,  setCollege]  = useState("");
+  const [year,     setYear]     = useState("");
+  const [category, setCategory] = useState("");
+  const filtered = reports.filter(r=>(!college||r.college===college)&&(!year||r.year===year)&&(!category||r.category===category));
+  const COL = "2fr 1fr 1fr 100px 80px";
   return (
     <div>
       <div style={{ display:"flex", gap:"10px", marginBottom:"18px", flexWrap:"wrap", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", gap:"10px", flexWrap:"wrap" }}>
           <FilterSelect value={college}  onChange={setCollege}  placeholder="All colleges"  options={["College of Engineering","College of Science","College of Nursing","College of Education"]} />
           <FilterSelect value={year}     onChange={setYear}     placeholder="Year"           options={["2026","2025","2024","2023"]} />
-          <FilterSelect value={quarter}  onChange={setQuarter}  placeholder="Quarter"        options={["Q1","Q2","Q3","Q4"]} />
           <FilterSelect value={category} onChange={setCategory} placeholder="All categories" options={["Thesis","Capstone","Research Paper","Feasibility Study"]} />
         </div>
         <PrimaryBtn onClick={onGenerate}><IconPlus /> Generate report</PrimaryBtn>
       </div>
-      <ColHeader cols={COL} headers={["Report","College","Year","Quarter","Category",""]} />
+      <ColHeader cols={COL} headers={["Report","College","Year","Category",""]} />
       {loading ? <SkeletonRow cols={COL} /> : filtered.length===0 ? <EmptyState icon={IconChart} message="No reports yet." sub="Use Generate report to create your first one." /> : filtered.map(r => (
         <div key={r.id} style={{ display:"grid", gridTemplateColumns:COL, alignItems:"center", gap:"12px", padding:"12px 10px", borderBottom:"1px solid #f3f3f3" }}>
           <div style={{ minWidth:0 }}>
             <p style={{ color:"#111", fontWeight:500, fontSize:"13px", margin:"0 0 2px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{r.title}</p>
-            <span style={{ color:"#ccc", fontSize:"11px" }}>Generated {r.generatedAt}</span>
+            <span style={{ color:"#ccc", fontSize:"11px" }}>Generated {r.generatedAt ? new Date(r.generatedAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}) : "—"}</span>
           </div>
           <span style={{ color:"#666", fontSize:"12px" }}>{r.college??"All"}</span>
           <span style={{ color:"#666", fontSize:"12px" }}>{r.year}</span>
-          <span style={{ color:"#666", fontSize:"12px" }}>{r.quarter}</span>
           <span style={{ color:"#666", fontSize:"12px" }}>{r.category??"All"}</span>
           <GhostBtn onClick={()=>{}}><IconDownload /> Export</GhostBtn>
         </div>
@@ -798,13 +751,13 @@ function UsersPanel({ users, loading, onCreateStaff, onRefetch }) {
       <div style={{ display:"flex", gap:"10px", marginBottom:"18px", flexWrap:"wrap", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", gap:"10px", flexWrap:"wrap" }}>
           <SearchBox value={search} onChange={setSearch} placeholder="Search name or email…" />
-          <FilterSelect value={role} onChange={setRole} placeholder="All roles" options={["Super admin","PKMD staff","Student","admin","student"]} />
+          <FilterSelect value={role} onChange={setRole} placeholder="All roles" options={["admin","student"]} />
         </div>
         <PrimaryBtn onClick={onCreateStaff}><IconUserPlus /> Add staff</PrimaryBtn>
       </div>
       <ColHeader cols={COL} headers={["Name","Email","Role","College","Status",""]} />
       {loading ? <SkeletonRow cols={COL} /> : filtered.length===0 ? <EmptyState icon={IconUser} message="No users found." sub="Try adjusting your search." /> : filtered.map(u => {
-        const rs = ROLE_STYLE[u.role]||ROLE_STYLE["Student"];
+        const rs = ROLE_STYLE[u.role]||ROLE_STYLE["student"];
         return (
           <div key={u.id} style={{ display:"grid", gridTemplateColumns:COL, alignItems:"center", gap:"12px", padding:"12px 10px", borderBottom:"1px solid #f3f3f3" }}>
             <div style={{ display:"flex", alignItems:"center", gap:"10px", minWidth:0 }}>
@@ -815,10 +768,8 @@ function UsersPanel({ users, loading, onCreateStaff, onRefetch }) {
             </div>
             <span style={{ color:"#666", fontSize:"12px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{u.email??"—"}</span>
             <span style={{ background:rs.bg, color:rs.text, fontSize:"10px", fontWeight:600, padding:"3px 9px", borderRadius:"20px", width:"fit-content" }}>{u.role}</span>
-            <span style={{ color:"#aaa", fontSize:"12px" }}>{u.college??"All"}</span>
-            <span style={{ background:u.active!==false?"#f0fdf4":"#f5f5f5", color:u.active!==false?"#166534":"#aaa", fontSize:"10px", fontWeight:600, padding:"3px 9px", borderRadius:"20px", width:"fit-content" }}>
-              {u.active!==false?"Active":"Inactive"}
-            </span>
+            <span style={{ color:"#aaa", fontSize:"12px" }}>{u.college??"—"}</span>
+            <span style={{ background:"#f0fdf4", color:"#166534", fontSize:"10px", fontWeight:600, padding:"3px 9px", borderRadius:"20px", width:"fit-content" }}>Active</span>
             <GhostBtn onClick={()=>{}}>Manage</GhostBtn>
           </div>
         );
@@ -855,7 +806,6 @@ function AccessLogsPanel({ logs, loading }) {
   );
 }
 
-// ── Main content ──────────────────────────────────────────────────────────────
 function DashboardContent({ activeTab, docs, docsLoading, docsRefetch, reports, reportsLoading, reportsRefetch, users, usersLoading, usersRefetch, logs, logsLoading, stats, onGenerateReport, onCreateStaff }) {
   const cardRef = useRef(null);
   const [entry, setEntry] = useState({ opacity:0, transform:"translateY(48px)" });
@@ -876,7 +826,7 @@ function DashboardContent({ activeTab, docs, docsLoading, docsRefetch, reports, 
   return (
     <div ref={cardRef} style={{ ...entry, background:"#f8f9fc", borderRadius:"0 2rem 0 0", position:"relative", zIndex:10, willChange:"transform, opacity", minHeight:"60vh" }}>
       <div style={{ padding:"40px 80px 64px" }}>
-        {activeTab==="Overview"    && <OverviewPanel stats={stats} docs={docs} reports={reports} logs={logs} />}
+        {activeTab==="Overview"    && <OverviewPanel stats={stats} docs={docs} reports={reports} />}
         {activeTab==="Documents"   && <DocumentsPanel docs={docs} loading={docsLoading} onRefetch={docsRefetch} />}
         {activeTab==="Reports"     && <ReportsPanel reports={reports} loading={reportsLoading} onGenerate={onGenerateReport} onRefetch={reportsRefetch} />}
         {activeTab==="Users"       && <UsersPanel users={users} loading={usersLoading} onCreateStaff={onCreateStaff} onRefetch={usersRefetch} />}
@@ -890,7 +840,6 @@ function DashboardContent({ activeTab, docs, docsLoading, docsRefetch, reports, 
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab,   setActiveTab]   = useState("Overview");
@@ -898,12 +847,12 @@ export default function AdminDashboard() {
   const [reportModal, setReportModal] = useState(false);
   const [staffModal,  setStaffModal]  = useState(false);
 
-  const { user }                                                          = useAdminUser();
-  const { docs,    loading:docsLoading,    refetch:docsRefetch    }       = useDocuments();
-  const { reports, loading:reportsLoading, refetch:reportsRefetch }       = useReports();
-  const { users,   loading:usersLoading,   refetch:usersRefetch   }       = useUsers();
-  const { logs,    loading:logsLoading }                                  = useAccessLogs();
-  const { stats }                                                         = useStats();
+  const { user }                                                    = useAdminUser();
+  const { docs,    loading:docsLoading,    refetch:docsRefetch    } = useDocuments();
+  const { reports, loading:reportsLoading, refetch:reportsRefetch } = useReports();
+  const { users,   loading:usersLoading,   refetch:usersRefetch   } = useUsers();
+  const { logs,    loading:logsLoading }                            = useAccessLogs();
+  const { stats }                                                   = useStats();
 
   const handleSignOut = async () => { await signOut(); navigate("/signin"); };
 
