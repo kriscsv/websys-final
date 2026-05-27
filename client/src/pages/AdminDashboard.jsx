@@ -728,7 +728,6 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
               <GhostBtn onClick={()=>setActionDoc(actionDoc===doc.id?null:doc.id)}>Actions ▾</GhostBtn>
               {actionDoc === doc.id && (
   <div style={{ position: "absolute", right: 0, top: "calc(100% + 4px)", background: "#fff", border: "1px solid #ebebeb", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", zIndex: 10, minWidth: "140px", overflow: "hidden" }}>
-    {/* Base actions common or conditional */}
     {doc.status !== "Approved" && (
       <button onClick={() => handleAction("approve", doc.id)} style={actionBtnStyle}>
         <IconCheck /> Approve
@@ -739,8 +738,6 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
         <IconX /> Reject
       </button>
     )}
-    
-    {/* Contextual Soft-Delete vs Restore Toggle */}
     {doc.status === "Archived" ? (
       <button onClick={() => handleAction("approve", doc.id)} style={{ ...actionBtnStyle, color: "#2d3a8c" }}>
         <IconCheck /> Restore
@@ -751,7 +748,6 @@ function DocumentsPanel({ docs, loading, onRefetch }) {
       </button>
     )}
 
-    {/* Hard permanent delete */}
     <button onClick={() => handleAction("delete", doc.id)} style={{ ...actionBtnStyle, color: "#c0392b" }}>
       <IconTrash /> Delete
     </button>
