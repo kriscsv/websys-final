@@ -93,7 +93,7 @@ exports.updateDocumentStatus = async (req, res) => {
     const { status } = req.body;
     const { id } = req.params;
 
-    if (!["Approved", "Rejected", "Pending"].includes(status))
+    if (!["Approved", "Rejected", "Pending", "Archived"].includes(status))
       return res.status(400).json({ message: "Invalid status" });
 
     await db.query(
