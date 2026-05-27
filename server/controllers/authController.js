@@ -17,7 +17,7 @@ exports.register = async (req, res) => {
     const id     = await User.create({ fullName, email, password: hashed, college, department, year, bloc });
     const token  = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    res.status(201).json({ token, user: { id, fullName, email, role: 'student' } });
+    res.status(201).json({ token, user: { id, fullName, email, role: 'student', college, course: department, year, bloc } });
 
   } catch (err) {
     console.error('Register error:', err.message);

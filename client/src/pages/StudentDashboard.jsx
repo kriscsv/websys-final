@@ -35,14 +35,14 @@ function useCurrentUser() {
       try {
         const parsed = JSON.parse(stored);
         setUser({
-          fullName: parsed.fullName || parsed.full_name || "—",
-          email:    parsed.email    || "—",
-          role:     parsed.role     || "student",
-          college:  parsed.college  || "—",
-          course:   parsed.course   || parsed.department || "—",
-          year:     parsed.year     || "—",
-          bloc:     parsed.bloc     || "—",
-          joined:   parsed.joined   || "—",
+          fullName: parsed.fullName  || parsed.full_name  || "—",
+          email:    parsed.email     || "—",
+          role:     parsed.role      || "student",
+          college:  parsed.college   || "—",
+          course:   parsed.course    || parsed.department || parsed.course || "—",
+          year:     parsed.year      || "—",
+          bloc:     parsed.bloc      || "—",
+          joined:   parsed.joined    || parsed.created_at || "—",
         });
       } catch (e) {
         console.error("Failed to parse user from localStorage");

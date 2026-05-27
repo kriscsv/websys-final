@@ -3,7 +3,22 @@ const db = require("../config/db");
 exports.getAllDocuments = async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM documents ORDER BY created_at DESC");
-    res.json(rows);
+    const mapped = rows.map(d => ({
+      id:           d.id,
+      title:        d.title,
+      category:     d.category,
+      college:      d.college,
+      department:   d.department,
+      fileSize:     d.file_size,
+      filePath:     d.file_path,
+      fileName:     d.file_name,
+      status:       d.status,
+      uploadedAt:   d.created_at,
+      uploaderName: d.uploader_name,
+      uploaderId:   d.uploaded_by,
+      uploaderRole: d.uploader_role,
+    }));
+    res.json(mapped);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -15,7 +30,22 @@ exports.getMyDocuments = async (req, res) => {
       "SELECT * FROM documents WHERE uploaded_by = ? ORDER BY created_at DESC",
       [req.user.id]
     );
-    res.json(rows);
+    const mapped = rows.map(d => ({
+      id:           d.id,
+      title:        d.title,
+      category:     d.category,
+      college:      d.college,
+      department:   d.department,
+      fileSize:     d.file_size,
+      filePath:     d.file_path,
+      fileName:     d.file_name,
+      status:       d.status,
+      uploadedAt:   d.created_at,
+      uploaderName: d.uploader_name,
+      uploaderId:   d.uploaded_by,
+      uploaderRole: d.uploader_role,
+    }));
+    res.json(mapped);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

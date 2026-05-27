@@ -158,12 +158,8 @@ export default function SignIn() {
 
             <form onSubmit={handleSignIn} style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
 
+              {/* Email — no icon */}
               <div style={{ position:"relative" }}>
-                <svg style={{ position:"absolute", left:"14px", top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}
-                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2">
-                  <rect x="2" y="4" width="20" height="16" rx="2"/>
-                  <path d="M2 7l10 7 10-7"/>
-                </svg>
                 <input
                   type="email"
                   placeholder="Email"
@@ -173,7 +169,7 @@ export default function SignIn() {
                   required
                   style={{
                     width:"100%", boxSizing:"border-box",
-                    padding:"13px 14px 13px 40px",
+                    padding:"13px 14px",
                     background:"#f4f4f4", border:"1.5px solid #f4f4f4",
                     borderRadius:"10px",
                     fontSize:"14px", color:"#333",
@@ -184,35 +180,36 @@ export default function SignIn() {
                 />
               </div>
 
+              {/* Password — eye icon on the left */}
               <div style={{ position:"relative" }}>
-                <svg
-                  onClick={() => setShowPass(p => !p)}
-                  style={{ position:"absolute", left:"14px", top:"50%", transform:"translateY(-50%)", cursor:"pointer", zIndex:1 }}
-                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2">
-                  {showPass
-                    ? <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
-                    : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
-                  }
-                </svg>
-                <input
-                  type={showPass ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                  style={{
-                    width:"100%", boxSizing:"border-box",
-                    padding:"13px 14px 13px 40px",
-                    background:"#f4f4f4", border:"1.5px solid #f4f4f4",
-                    borderRadius:"10px",
-                    fontSize:"14px", color:"#333",
-                    outline:"none", transition:"border-color 0.15s",
-                  }}
-                  onFocus={e => e.target.style.borderColor="#2d3a8c"}
-                  onBlur={e  => e.target.style.borderColor="#f4f4f4"}
-                />
-              </div>
+              <input
+                type={showPass ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                style={{
+                  width:"100%", boxSizing:"border-box",
+                  padding:"13px 40px 13px 14px",
+                  background:"#f4f4f4", border:"1.5px solid #f4f4f4",
+                  borderRadius:"10px",
+                  fontSize:"14px", color:"#333",
+                  outline:"none", transition:"border-color 0.15s",
+                }}
+                onFocus={e => e.target.style.borderColor="#2d3a8c"}
+                onBlur={e  => e.target.style.borderColor="#f4f4f4"}
+              />
+              <svg
+                onClick={() => setShowPass(p => !p)}
+                style={{ position:"absolute", right:"14px", top:"50%", transform:"translateY(-50%)", cursor:"pointer", zIndex:1 }}
+                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2">
+                {showPass
+                  ? <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
+                  : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
+                }
+              </svg>
+            </div>
 
               <button
                 type="submit"
@@ -227,7 +224,16 @@ export default function SignIn() {
                   border:"none", cursor: loading ? "not-allowed" : "pointer",
                   marginTop:"4px", transition:"background 0.15s",
                 }}>
-                {loading ? "SIGNING IN..." : "SIGN IN"}
+                {loading ? (
+                  <span style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"8px" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"
+                      style={{ animation:"spin 0.7s linear infinite" }}>
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    SIGNING IN...
+                    <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+                  </span>
+                ) : "SIGN IN"}
               </button>
 
             </form>

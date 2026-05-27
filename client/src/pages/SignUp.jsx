@@ -347,7 +347,16 @@ export default function SignUp() {
                 border:"none", cursor: loading ? "not-allowed" : "pointer",
                 marginTop:"4px", transition:"background 0.15s",
               }}>
-              {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
+              {loading ? (
+                  <span style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"8px" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"
+                      style={{ animation:"spin 0.7s linear infinite" }}>
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    CREATING ACCOUNT...
+                    <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+                  </span>
+                ) : "CREATE ACCOUNT"}
             </button>
 
           </form>
