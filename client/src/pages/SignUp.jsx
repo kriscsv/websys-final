@@ -106,6 +106,10 @@ export default function SignUp() {
         !formData.password || !formData.confirm) {
       setError("Please fill in all fields."); return;
     }
+    if (!formData.email.toLowerCase().endsWith("@bicol-u.edu.ph")){
+        setError("Only Bicol University email addresses are accepted.")
+        return;
+    }
     if (formData.password !== formData.confirm) {
       setError("Passwords do not match."); return;
     }
