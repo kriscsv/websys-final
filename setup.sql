@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS documents (
   file_name     VARCHAR(255),
   file_path     VARCHAR(500),
   file_size     VARCHAR(50),
-  status        ENUM('Pending','Approved','Rejected') DEFAULT 'Pending',
+  status        ENUM('Pending','Approved','Rejected', 'Archived') DEFAULT 'Pending',
   uploaded_by   INT NOT NULL,
   uploader_name VARCHAR(255),
   uploader_role ENUM('student','admin') DEFAULT 'student',
